@@ -160,6 +160,7 @@ type RacunType struct {
 	PrateciDokument       *PrateciDokument      `xml:"tns:PrateciDokument,omitempty"`
 	PromijenjeniNacinPlac string                `xml:"tns:PromijenjeniNacinPlac,omitempty"`
 	Napojnica             *NapojnicaType        `xml:"tns:Napojnica,omitempty"`
+	OibPrimateljaRacuna   *string               `xml:"tns:OibPrimateljaRacuna,omitempty"`
 
 	// Additional functional non XML fields
 	pointerToEntity    *FiskalEntity // Pointer to the FiskalEntity

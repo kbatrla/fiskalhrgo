@@ -271,6 +271,7 @@ func TestNewCISInvoice(t *testing.T) {
 		iznosUkupno,
 		CISCash,
 		oibOper,
+		"00000000010",
 	)
 
 	if err != nil {
@@ -386,6 +387,7 @@ func TestSimpleInvoiceFromReadme(t *testing.T) {
 		CISCash,   // payment method G - cash, K - credit card, T -
 		// transfer, O - other, C - check (deprecated)
 		"12345678901", // operator OIB
+		"00000000010", // oib primatelja
 	)
 
 	if err != nil {

@@ -122,6 +122,7 @@ func main() {
         "G",           // payment method G - cash, K - credit card, T -
                        // transfer, O - other, C - check (deprecated)
         "12345678901", // operator OIB
+        "00000000010", // recepient OIB
     )
 
     if err != nil {

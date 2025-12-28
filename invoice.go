@@ -80,6 +80,7 @@ func (fe *FiskalEntity) NewCISInvoice(
 	iznosUkupno string,
 	paymentMethod PaymentMethod,
 	oibOper string,
+	oibPrimatelja string,
 ) (*RacunType, string, error) {
 	// Format the date and time
 	formattedDate := dateTime.Format("02.01.2006T15:04:05")
@@ -171,7 +172,7 @@ func (fe *FiskalEntity) NewCISInvoice(
 		return nil, "", err
 	}
 
-	return &RacunType{
+	rt := &RacunType{
 		Oib:                fe.oib,
 		USustPdv:           fe.sustPDV,
 		DatVrijeme:         formattedDate,
@@ -191,7 +192,13 @@ func (fe *FiskalEntity) NewCISInvoice(
 		NakDost:            false,
 		pointerToEntity:    fe,
 		oldEntityForOldZKI: nil,
-	}, zki, nil
+	}
+
+	if oibPrimatelja != "" {
+		rt.OibPrimateljaRacuna = &oibPrimatelja
+	}
+
+	return rt, zki, nil
 }
 
 func (invoice *RacunType) GetZKI() string {
