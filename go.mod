@@ -1,4 +1,4 @@
-module github.com/l-d-t/fiskalhrgo
+module github.com/kbatrla/fiskalhrgo
 
 go 1.23.0
 
@@ -7,6 +7,7 @@ toolchain go1.23.1
 require (
 	github.com/beevik/etree v1.5.1
 	github.com/google/uuid v1.6.0
+	github.com/l-d-t/fiskalhrgo v0.1.5-alpha.6
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.41.0
 )
