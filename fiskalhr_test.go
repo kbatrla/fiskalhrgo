@@ -61,7 +61,8 @@ ___________.__        __           .__    ___ _____________    ________
 		environment variables. This makes it easy and convenient to manage. The 
 		certificate, password, and OIB for tests can be easily stored as GitHub 
 		Action secrets, for example.`)
-		os.Exit(1)
+		fmt.Println("Cert-dependent tests will be skipped. Unit tests without cert requirements will still run.")
+		os.Exit(m.Run())
 	}
 
 	fmt.Printf("Test OIB: %s\n", testOIB)
@@ -97,6 +98,9 @@ ___________.__        __           .__    ___ _____________    ________
 }
 
 func TestCertOutput(t *testing.T) {
+	if testEntity == nil {
+		t.Skip("skipping: CIS certificate env vars not set")
+	}
 	t.Logf("Testing certificate output...")
 
 	fmt.Println(testEntity.DisplayCertInfoText())
@@ -115,6 +119,9 @@ func TestCertOutput(t *testing.T) {
 
 // TestGenerateZKI tests the ZKI generation using the previously loaded certificate
 func TestGenerateZKI(t *testing.T) {
+	if testEntity == nil {
+		t.Skip("skipping: CIS certificate env vars not set")
+	}
 	t.Logf("Testing ZKI generation...")
 
 	// Reuse the loaded certManager to generate ZKI
@@ -140,6 +147,9 @@ func TestGenerateZKI(t *testing.T) {
 // GitHub repository and CI environment, where the correct test certificate is available.
 
 func TestKnownZKI(t *testing.T) {
+	if testEntity == nil {
+		t.Skip("skipping: CIS certificate env vars not set")
+	}
 	if os.Getenv("FISKALHRGO_TEST_KNOWN_ZKI") == "" {
 		t.Skip("Skipping TestKnownZKI because FISKALHRGO_TEST_KNOWN_ZKI environment variable is not set")
 	}
@@ -184,6 +194,9 @@ func TestKnownZKI(t *testing.T) {
 
 // Test CISEcho
 func TestCISEcho(t *testing.T) {
+	if testEntity == nil {
+		t.Skip("skipping: CIS certificate env vars not set")
+	}
 	t.Logf("Testing CISEcho...")
 	msg := "Hello, CIS, from FiskalhrGo!"
 
@@ -203,6 +216,9 @@ func TestCISEcho(t *testing.T) {
 }
 
 func TestPing(t *testing.T) {
+	if testEntity == nil {
+		t.Skip("skipping: CIS certificate env vars not set")
+	}
 	t.Log("Testing Ping...")
 	err := testEntity.PingCIS()
 	if err != nil {
@@ -215,6 +231,9 @@ func TestPing(t *testing.T) {
 // This test just the SSL connection and production cert verification pool and ping message to the CIS production server
 // The rest should be identical to the demo environment and the rest can only be tested in the demo environment ofc.
 func TestProductionPing(t *testing.T) {
+	if testEntity == nil {
+		t.Skip("skipping: CIS certificate env vars not set")
+	}
 	if os.Getenv("CISTESTPRODPING") == "" {
 		t.Skip("Skipping TestProductionPing because CISTESTPRODPING environment variable is not set")
 	}
@@ -235,6 +254,9 @@ func TestProductionPing(t *testing.T) {
 
 // Test CIS invoice with helper functions
 func TestNewCISInvoice(t *testing.T) {
+	if testEntity == nil {
+		t.Skip("skipping: CIS certificate env vars not set")
+	}
 	pdvValues := [][]interface{}{
 		{"25.00", "1000.00", "250.00"},
 	}
@@ -363,6 +385,9 @@ func TestNewCISInvoice(t *testing.T) {
 }
 
 func TestSimpleInvoiceFromReadme(t *testing.T) {
+	if testEntity == nil {
+		t.Skip("skipping: CIS certificate env vars not set")
+	}
 
 	invoice, _, err := testEntity.NewCISInvoice(
 		time.Now(),

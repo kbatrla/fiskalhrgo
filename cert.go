@@ -7,8 +7,11 @@ package fiskalhrgo
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -150,13 +153,23 @@ func (cm *certManager) getCertOIB() (string, error) {
 		return "", fmt.Errorf("organization or country fields missing in certificate")
 	}
 
-	// Try to extract the OIB by splitting the organization field at the country field
-	ex := strings.Split(organization[0], country[0])
-	if len(ex) < 2 {
+	pattern := regexp.QuoteMeta(country[0]) + `([0-9]{11})`
+	regCheck, err := regexp.Compile(pattern)
+	if err != nil {
+		return "", fmt.Errorf("failed to build OIB extraction regex: %v", err)
+	}
+
+	matches := regCheck.FindStringSubmatch(strings.TrimSpace(organization[0]))
+	if len(matches) < 2 {
 		return "", fmt.Errorf("failed to extract OIB from certificate")
 	}
 
-	return ex[1], nil
+	oib := matches[1]
+	if err := validateOIB(oib); err != nil {
+		return "", fmt.Errorf("invalid OIB extracted from certificate: %w", err)
+	}
+
+	return oib, nil
 }
 
 func (cm *certManager) displayCertInfoText() string {
@@ -258,4 +271,55 @@ func (cm *certManager) displayCertInfoKeyPoints() [][2]string {
 	}
 
 	return result
+}
+
+// ErrOIBInvalid oib nije ispravan
+var ErrOIBInvalid = errors.New("Oib nije ispravan")
+
+// ErrOIBInvalidChar oib sadrži nedopuštene znakove
+var ErrOIBInvalidChar = errors.New("Oib nije ispravnog formata")
+
+// ErrOIBInvalidLength mora biti 11 znamenki
+var ErrOIBInvalidLength = errors.New("Oib nije ispravne duljine")
+
+func validateOIB(oib string) error {
+	if len(oib) != 11 {
+		return ErrOIBInvalidLength
+	}
+	regCheck, err := regexp.Compile(`^[0-9]{11}$`)
+	if err != nil {
+		return ErrOIBInvalidChar
+	}
+	if !regCheck.MatchString(oib) {
+		return ErrOIBInvalidChar
+	}
+
+	initial, _ := strconv.Atoi(string(oib[0]))
+	res := initial + 10 // 1. prva znamenka zbroji se s brojem 10
+
+	divider := func(in int) int {
+		out := in % 10 // 2. dobiveni zbroj cjelobrojno (s ostatkom) podijeli se brojem 10;
+		if out == 0 {  // ako je dobiveni ostatak 0 zamijeni se brojem 10 (ovaj broj je tzv. međuostatak)
+			out = 10
+		}
+		out = out * 2  // 3. dobiveni međuostatak pomnoži se brojem 2
+		out = out % 11 // 4. dobiveni umnožak cjelobrojno (s ostatkom) podijeli se brojem 11; ovaj ostatak matematički nikako ne može biti 0 jer je rezultat prethodnog koraka uvijek paran broj
+		return out
+	}
+	res = divider(res)
+
+	for _, num := range oib[1:10] {
+		n, _ := strconv.Atoi(string(num))
+		res = n + res      // 5. slijedeća znamenka zbroji se s ostatkom u prethodnom koraku
+		res = divider(res) // 6. ponavljaju se koraci 2, 3, 4 i 5 dok se ne potroše sve znamenke
+	}
+
+	result := 11 - res // 7. razlika izmeñu broja 11 i ostatka u zadnjem koraku je kontrolna znamenka
+	if res == 1 {      // ako je ostatak 1 kontrolna znamenka je 0 (11-1=10, a 10 ima dvije znamenke)
+		result = 0
+	}
+	if strconv.Itoa(result) == string(oib[10]) {
+		return nil
+	}
+	return ErrOIBInvalid
 }

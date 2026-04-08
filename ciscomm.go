@@ -119,6 +119,8 @@ func (fe *FiskalEntity) GetResponse(xmlPayload []byte, sign bool) ([]byte, int, 
 		return body, resp.StatusCode, fmt.Errorf("failed to unmarshal SOAP response: %w", err)
 	}
 
+	fmt.Printf(" soapResp %+v", string(soapResp.Body.Content))
+
 	// Return the inner content of the SOAP Body (the actual response)
 	if resp.StatusCode == http.StatusOK {
 		return soapResp.Body.Content, resp.StatusCode, nil
