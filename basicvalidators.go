@@ -5,6 +5,7 @@ package fiskalhrgo
 // Copyright (c) contributors for their respective contributions. See https://github.com/l-d-t/fiskalhrgo/graphs/contributors
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -75,6 +76,8 @@ func IsFileReadable(filePath string) bool {
 		return false
 	}
 
+	fmt.Println(" absPath:", absPath)
+
 	// Check if the file exists
 	info, err := os.Stat(absPath)
 	if os.IsNotExist(err) {
@@ -89,6 +92,7 @@ func IsFileReadable(filePath string) bool {
 	// Check if the file is readable
 	file, err := os.Open(absPath)
 	if err != nil {
+		fmt.Println(err)
 		return false
 	}
 	defer file.Close()

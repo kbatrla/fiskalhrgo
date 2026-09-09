@@ -9,13 +9,14 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/pkcs12"
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 // certManager holds the private key, public certificate, and additional info
@@ -131,6 +132,7 @@ func (cm *certManager) decodeP12Cert(certPath string, password string) error {
 	if err != nil {
 		return fmt.Errorf("error extracting OIB: %v", err)
 	}
+	log.Printf("certificate oib: %s", oib)
 	cm.certOIB = oib
 	cm.certORG = certificate.Subject.Organization[0]
 
@@ -159,14 +161,26 @@ func (cm *certManager) getCertOIB() (string, error) {
 		return "", fmt.Errorf("failed to build OIB extraction regex: %v", err)
 	}
 
+	for _, field := range cm.publicCert.Subject.Names {
+		fl := fmt.Sprint(field.Value)
+		matches := regCheck.FindStringSubmatch(strings.TrimSpace(fl))
+		if len(matches) < 2 {
+			continue
+		}
+		maybeOib := matches[1]
+		if ValidateOIB(maybeOib) {
+			return maybeOib, nil
+		}
+	}
+
 	matches := regCheck.FindStringSubmatch(strings.TrimSpace(organization[0]))
 	if len(matches) < 2 {
 		return "", fmt.Errorf("failed to extract OIB from certificate")
 	}
 
 	oib := matches[1]
-	if err := validateOIB(oib); err != nil {
-		return "", fmt.Errorf("invalid OIB extracted from certificate: %w", err)
+	if !ValidateOIB(oib) {
+		return "", fmt.Errorf("invalid OIB extracted from certificate: %s", oib)
 	}
 
 	return oib, nil
